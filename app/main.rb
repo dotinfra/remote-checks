@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'sinatra/base'
+require 'sinatra'
 require 'benchmark'
 require 'json'
 require 'net/http'

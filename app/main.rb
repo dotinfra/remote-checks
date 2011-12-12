@@ -22,7 +22,7 @@ class NetChecks < Sinatra::Base
 
     stats = Benchmark.realtime { @result = http_code("#{url}", "#{path}") }
 
-      json = { :GlobalInformations => {
+      json = { :HTTP_Check => {
         :request_to              => "#{url}#{path}",
         :response_code           => "#{@result}",
         :response_time           => "#{stats}"

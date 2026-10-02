@@ -1,39 +1,36 @@
 # remote-checks
 
-A tiny Sinatra web service that performs remote HTTP checks on demand and reports the result as JSON. Built and operated by [dotINFRA](https://www.dotinfra.fr).
+A tiny Go web service that performs remote HTTP checks on demand and reports the result as JSON. Built and operated by [dotINFRA](https://www.dotinfra.fr).
+
+Go implementation, standard library only — no framework, no external dependencies. Single static binary.
 
 ## Features
 
-- `GET /checks?url=<target>&proxy=<proxy-url>` — fetches `<target>` over HTTP(S) and returns a JSON report with the response code, total response time, and the target's `Cache-Control` header.
+- `GET /checks?url=<target>[&proxy=<proxy-url>]` — fetches `<target>` over HTTP(S) and returns a JSON report with the response code, response time, and the target's `Cache-Control` header.
 - `GET /` — redirects to [dotinfra.fr](https://www.dotinfra.fr).
-- Supports HTTP Basic Authentication via credentials embedded in the target URL (`https://user:pass@example.com/`).
+- `GET /healthz` — health probe returning `200`.
 - Optional outbound proxy: pass `proxy=http://host:port` to route the check through a proxy.
+- Supports HTTP Basic Authentication via credentials embedded in the target URL (`https://user:pass@example.com/`).
+- 10-second request timeout with clean JSON error responses.
 
 ## Requirements
 
-- Ruby 2.7.0 (as pinned in the `Gemfile`)
-- Bundler
-
-Dependencies: `sinatra`, `thin`, `json`.
-
-## Installation
-
-```sh
-bundle install
-```
+- Go 1.24+
 
 ## Usage
 
-Start the server:
+Run locally:
 
 ```sh
-bundle exec rackup
+go run ./cmd/server
 ```
 
-Run a check (through a proxy):
+The server listens on `:8080` by default (override with the `PORT` environment variable).
+
+Run a check:
 
 ```sh
-curl 'http://localhost:9292/checks?url=https://example.com&proxy=http://localhost:3128'
+curl 'http://localhost:8080/checks?url=https://example.com'
 ```
 
 Example response:
@@ -49,29 +46,43 @@ Example response:
 }
 ```
 
-The service always issues a `GET` request with the User-Agent `Mozilla/5.0 (dotINFRA; remote check)`.
-
 ### Parameters
 
-| Parameter | Description |
-|-----------|-------------|
-| `url`     | Target URL to check. May embed Basic Auth credentials. |
-| `proxy`   | Proxy URL used for the outbound request (e.g. `http://host:port`). |
+| Parameter | Required | Description                                          |
+|-----------|----------|------------------------------------------------------|
+| `url`     | yes      | Target URL to check. May embed Basic Auth credentials. |
+| `proxy`   | no       | Proxy URL used for the outbound request.             |
 
-## API
+### Errors
 
-### `GET /checks`
+Errors are returned as `{"error": "<message>"}`:
 
-Returns `application/json`:
+| Status | Meaning                                            |
+|--------|----------------------------------------------------|
+| `400`  | Missing or invalid `url` / `proxy` parameter.        |
+| `502`  | Target unreachable or the request failed.           |
+| `504`  | The request timed out (10s limit).                  |
 
-| Field           | Description                                          |
-|-----------------|------------------------------------------------------|
-| `request_to`    | The requested URL.                                    |
-| `response_code` | HTTP status code returned by the target.              |
-| `response_time` | Wall-clock request duration in seconds (as string).  |
-| `cachecontrol`  | `Cache-Control` header of the target response.       |
+## Build
 
-Errors (invalid URL, unreachable host, missing proxy) currently surface as an HTTP 500.
+```sh
+CGO_ENABLED=0 go build -ldflags="-s -w" -o remote-checks ./cmd/server
+```
+
+## Docker
+
+```sh
+docker build -t remote-checks .
+docker run -p 8080:8080 remote-checks
+```
+
+The final image is `FROM scratch` (static binary), suitable for serverless containers (Scaleway, OVHcloud) and minimal deployments.
+
+## Tests
+
+```sh
+go test ./...
+```
 
 ## License
 

@@ -55,9 +55,9 @@ jobs:
         run: |
           docker run -d --name smoke -p 8080:8080 remote-checks:ci
           for i in $(seq 1 10); do
-            if curl -sf http://localhost:8080/ -o /dev/null; then break; fi
+            if curl -sf http://localhost:8080/healthz -o /dev/null; then break; fi
             sleep 1
           done
-          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/)" = "302"
-          curl -s 'http://localhost:8080/checks?url=http://localhost:8080/' | grep -q '"response_code":"302"'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/healthz)" = "200"
+          curl -s 'http://localhost:8080/checks?url=http://localhost:8080/healthz' | grep -q '"response_code":"200"'
           docker rm -f smoke

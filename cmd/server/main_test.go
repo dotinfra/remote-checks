@@ -24,6 +24,20 @@ func TestHandleRootRedirects(t *testing.T) {
 	}
 }
 
+func TestHandleHealth(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	rec := httptest.NewRecorder()
+
+	handleHealth(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	if rec.Body.String() != "ok\n" {
+		t.Fatalf("body = %q, want %q", rec.Body.String(), "ok\n")
+	}
+}
+
 func TestHandleChecksMissingURL(t *testing.T) {
 	s := &server{}
 	req := httptest.NewRequest(http.MethodGet, "/checks", nil)

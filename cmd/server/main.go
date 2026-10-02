@@ -135,6 +135,11 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectTarget, http.StatusFound)
 }
 
+func handleHealth(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok\n"))
+}
+
 type server struct{}
 
 func main() {
@@ -142,6 +147,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /", handleRoot)
+	mux.HandleFunc("GET /healthz", handleHealth)
 	mux.HandleFunc("GET /checks", s.handleChecks)
 
 	port := os.Getenv("PORT")

@@ -8,6 +8,7 @@ Go implementation, standard library only — no framework, no external dependenc
 
 - `GET /checks?url=<target>[&proxy=<proxy-url>]` — fetches `<target>` over HTTP(S) and returns a JSON report with the response code, response time, and the target's `Cache-Control` header.
 - `GET /` — redirects to [dotinfra.fr](https://www.dotinfra.fr).
+- `GET /healthz` — health probe returning `200`.
 - Optional outbound proxy: pass `proxy=http://host:port` to route the check through a proxy.
 - Supports HTTP Basic Authentication via credentials embedded in the target URL (`https://user:pass@example.com/`).
 - 10-second request timeout with clean JSON error responses.

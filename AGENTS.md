@@ -56,7 +56,7 @@ CGO_ENABLED=0 go build -ldflags="-s -w" -o remote-checks ./cmd/server   # static
 docker build -t remote-checks .   # image FROM scratch (final binary is static)
 ```
 
-CI workflow: `.github/workflows/ci.yml` (fmt, vet, tests, static build, Docker build, container smoke test) on every PR and push to master. Deploy workflow: `.github/workflows/deploy.yml` (build/push GHCR + Scaleway Serverless Container rollout) on push to master — see `DEPLOYMENT.md` for setup and secrets (`SCW_SECRET_KEY`, `SCW_CONTAINER_ID`, optional `SCW_REGION`). Locally, still run vet + gofmt + test before pushing.
+CI workflow: `.github/workflows/ci.yml` (fmt, vet, tests, static build, Docker build, container smoke test) on every PR and push to master. Deployment to Scaleway Serverless Containers is planned but not wired up yet — configuration will be done later on the Scaleway side. Locally, still run vet + gofmt + test before pushing.
 
 ## Repository conventions
 
@@ -68,7 +68,7 @@ CI workflow: `.github/workflows/ci.yml` (fmt, vet, tests, static build, Docker b
 
 1. Open proxy usage: any caller can make the service issue requests toward arbitrary targets via an arbitrary proxy (SSRF-ish surface), no rate limiting or allowlist.
 2. No graceful shutdown handling (`http.ErrServerClosed` is tolerated but SIGTERM is not trapped).
-3. Deploy workflow cannot run until the one-time Scaleway setup in `DEPLOYMENT.md` is done (namespace, container, GitHub secrets).
+3. No deployment pipeline yet: Scaleway Serverless Container setup (namespace, container, secrets) is deferred.
 
 ## History
 
